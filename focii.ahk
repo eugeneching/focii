@@ -12,6 +12,12 @@ gGroupIndex := 1
   SwitchAmongRelatedWindows()
   Return
 
+^!;::
+  ; Flash it
+  WinGet, currentHWnd, ID, A
+  FlashWindow(currentHWnd)
+  Return
+
 
 /*
 
