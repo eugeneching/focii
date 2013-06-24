@@ -1,9 +1,15 @@
 ;-----------------------------------------------------------------------------
-; Focii Shortcut
+; Focii Shortcuts
 ;-----------------------------------------------------------------------------
+
+gGroupIndex := 1
 
 ^;::
   Activate()
+  Return
+
+!;::
+  SwitchAmongRelatedWindows()
   Return
 
 
@@ -181,6 +187,47 @@ if (WIN64) {
 
 
 ; ----------------------------------------------------------------------------
+; SwitchAmongWindows()
+;
+; Searches for all related windows and switches among them. Related
+; windows, by definition, are windows of the same class, or originating
+; from the same application.
+; ----------------------------------------------------------------------------
+
+SwitchAmongRelatedWindows() {
+  ; Groups cannot be destroyed (AHK limitation), so we store a unique group
+  ; per class. This is a slight memory leak, but a decision was made to do it
+  ; this way, in order to achieve both process-level and class-level window
+  ; switching.
+
+  ; Also, since we are creating groups based on class names, we want to make 
+  ; sure that the class name is a valid group name. Hence, we remove all
+  ; non-alphanumeric characters.
+
+  ; Get details of current active window
+  WinGetClass, currentClass, A
+  WinGet, currentPID, PID, A
+
+  
+  ; Add all these windows to a group
+  sanitizedClassName := RegExReplace(currentClass, "[^a-zA-Z]", "")
+  groupName := "AllCurrentWindowsOf" sanitizedClassName
+  GroupAdd %groupName%, ahk_class %currentClass%
+  GroupAdd %groupName%, ahk_pid %currentPID%
+
+  ; Go to next window of currently activated process
+  ; WinActivateBottom, ahk_class %currentClass%
+  WinActivateBottom, ahk_group %groupName%
+
+  ; Flash it
+  WinGet, currentHWnd, ID, A
+  FlashWindow(currentHWnd)
+
+  return
+}
+
+  
+; ----------------------------------------------------------------------------
 ; GetProcesses()
 ;
 ; Gets a list of all running processes.
@@ -262,22 +309,22 @@ WinGetAll(Which="Title", DetectHidden="Off") {
 
 
 ; ----------------------------------------------------------------------------
-; SimpleInputBox()
+; PowerBox()
 ;
 ; Custom slim input box that can be use to capture input.
 ;
 ; Usage:
-;   Result := SimpleInputBox()
+;   Result := PowerBox()
 ;
 ; Notes:
 ;   The GuiID should be sufficent for most uses. If however it conflicts then
-;    you will need to change it in three places:
+;   you will need to change it in three places:
 ;     GuiID := (New ID number)  - found in the second line of the cInpuBox function
 ;     (New ID number)GuiEscape: - Found just below cInputBox function
 ;     (New ID number)GuiClose:  - Found just below cInputBox function
 ; ----------------------------------------------------------------------------
 
-SimpleInputBox() {
+PowerBox() {
   global _cInput_Result, _cInput_Value, Box
   global searchHistory1, searchHistory2, searchHistory3, searchHistory4, searchHistory5
 
@@ -370,17 +417,16 @@ FlashWindow(hWnd) {
 
   ; Flash the window
   Loop, 1 {
-    trans := 180
-    delay := 30
+    trans := 165
+    delay := 20
     Loop {
       WinSet, Transparent, %trans%, ahk_id %hWnd%
-      trans := trans + 10
-      delay := delay - 2
-      if (trans > 255)
+      trans := trans + 30
+      if (trans >= 255)
         break
       Sleep %delay%
     }
-    WinSet, Transparent, 255, ahk_id %hWnd%
+    ;WinSet, Transparent, 255, ahk_id %hWnd%
     WinSet, Transparent, Off, ahk_id %hWnd%
 
     ; Restore original always-on-top settings
@@ -475,6 +521,7 @@ AddToHistory(item) {
   searchHistory1 := item
 }
 
+
 ; ----------------------------------------------------------------------------
 ; Activate()
 ;
@@ -489,9 +536,10 @@ Activate() {
 
   ; Globals
   global searchHistory1, searchHistory2, searchHistory3, searchHistory4, searchHistory5
+  global currHWnd, currPID, currProcessName, currWindowTitle
 
   ; Display input box
-  searchTerm := SimpleInputBox()
+  searchTerm := PowerBox()
 
   ; Bail if there's nothing to do
   if (searchTerm == "" || searchTerm == "<<history slot unused>>")
@@ -543,11 +591,13 @@ Activate() {
     Return
   }
 
+  ; Reload Focii
   if (":reload" == searchTerm || ";reload" == searchTerm) {
     Reload
     Return
   }
 
+  
   
   ;
   ; From this point on, history is recorded
@@ -886,8 +936,16 @@ Activate() {
 ; ----------------------------------------------------------------------------
 
 ActivateWindowHWnd(hWnd, PID, processName, windowTitle) {
+  global currHWnd, currPID, currProcessName, currWindowTitle
+
   DisplayTrayTip("Activating """ . processName . """ (" . PID . ").", windowTitle)
   WinActivate, ahk_id %hWnd%
+
+  currHWnd        = %hWnd%
+  currPID         = %PID%
+  currProcessName = %processName%
+  currWindowTitle = %windowTitle%
+
   FlashWindow(hWnd)
 }
 
@@ -900,8 +958,17 @@ ActivateWindowHWnd(hWnd, PID, processName, windowTitle) {
 ; ----------------------------------------------------------------------------
 
 ActivateWindowPID(PID, processName, windowTitle) {
+  global currHWnd, currPID, currProcessName, currWindowTitle
+
   DisplayTrayTip("Activating """ . processName . """ (" . PID . ").", windowTitle)
   WinActivate, ahk_pid %PID%
+  WinGet, hWnd, ID, ahk_pid %PID%
+
+  currHWnd        = %hWnd%
+  currPID         = %PID%
+  currProcessName = %processName%
+  currWindowTitle = %windowTitle%
+
   FlashWindow(hWnd)
 }
 
