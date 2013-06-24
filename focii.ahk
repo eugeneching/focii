@@ -187,7 +187,7 @@ if (WIN64) {
 
 
 ; ----------------------------------------------------------------------------
-; SwitchAmongWindows()
+; SwitchAmongRelatedWindows()
 ;
 ; Searches for all related windows and switches among them. Related
 ; windows, by definition, are windows of the same class, or originating
