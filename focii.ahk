@@ -529,6 +529,106 @@ AddToHistory(item) {
 
 
 ; ----------------------------------------------------------------------------
+; WebSearch()
+;
+; Performs a query using the browser, through a search engine.
+; This is Google.
+; ----------------------------------------------------------------------------
+
+WebSearch(searchTerm) {
+  Try {
+    Run, https://www.google.com/search?q=%searchTerm%
+  }
+}
+
+
+; ----------------------------------------------------------------------------
+; WindowTitleSearch()
+;
+; Search for a specific window, using only the title of the
+; window.
+; ----------------------------------------------------------------------------
+
+WindowTitleSearch(searchTerm) {
+  ; Get window titles and search
+  found := False
+  windowTitles := WinGetAll("Title")
+  Loop, Parse, windowTitles, `n,
+  {
+    ; Found (window title), get PID, ProcessName and hWnd
+    If (InStr(A_LoopField, SearchTerm, CaseSensitive=false)) {
+      found := True
+      SetTitleMatchMode, 3
+      windowTitle := A_LoopField                        ; Window title
+      WinGet, PID, PID, %windowTitle%                   ; PID
+      WinGet, processName, ProcessName, %windowTitle%   ; Process name
+      WinGet, hWnd, ID, %windowTitle%                   ; hWnd
+
+      ; Activate window
+      ActivateWindowHWnd(hWnd, PID, processName, windowTitle)
+      break
+    }
+  }
+
+  ; Window title not found
+  if (!found) {
+    ; Give up
+    DisplayTrayTip("Could not find window title.", searchTerm, 2)
+  }
+}
+
+
+; ----------------------------------------------------------------------------
+; LaunchApplication()
+;
+; Launches an application by searching the start menu for the link,
+; search the path, shortcut path and program description.
+; ----------------------------------------------------------------------------
+
+LaunchApplication(programToExec) {
+  global gIsStartMenuItemsCached, gCacheSize
+
+  ; Grab necessary environment variables
+  EnvGet, ENV_LOCALAPPDATA, LOCALAPPDATA
+  EnvGet, ENV_APPDATA, APPDATA
+  EnvGet, ENV_PROGRAMDATA, ALLUSERSPROFILE
+  EnvGet, ENV_PATH, PATH
+
+  ; Manual rebuild cache (command: !!)
+  if (programToExec == "!") {
+    CacheStartMenuItems()
+    gIsStartMenuItemsCached := True
+    Return
+  }
+
+  ; Cache start menu items (first run)
+  if (!gIsStartMenuItemsCached) {
+    CacheStartMenuItems()
+    gIsStartMenuItemsCached := True
+  }
+
+  ; Search cache
+  Loop %gCacheSize% {
+    targetShortcutPath := gArrShortcutPath%A_Index%
+    targetRealPath     := gArrRealPath%A_Index%
+    targetDesc         := gArrDesc%A_Index%
+    targetIcon         := gArrIcon%A_Index%
+
+    if (InStr(targetRealPath, programToExec) || InStr(targetShortcutPath, programToExec) || InStr(targetDesc, programToExec)) {
+      Try {
+        Run, "%targetRealPath%"
+      }
+      DisplayTrayTip("Launching application.", targetRealPath)
+      Return
+    }
+  }
+
+  DisplayTrayTip("Could not launch application", searchTerm, 2)
+  Return
+}
+
+
+; ----------------------------------------------------------------------------
 ; Activate()
 ;
 ; Searches for a suitable match against the search term entered,
@@ -646,48 +746,9 @@ Activate() {
 
   ; Launch application
   if ("!" == firstChar) {
-    global gIsStartMenuItemsCached, gCacheSize
-
-    ; Grab necessary environment variables
-    EnvGet, ENV_LOCALAPPDATA, LOCALAPPDATA
-    EnvGet, ENV_APPDATA, APPDATA
-    EnvGet, ENV_PROGRAMDATA, ALLUSERSPROFILE
-    EnvGet, ENV_PATH, PATH
-
     ; Try to launch the program
     StringReplace, searchTerm, searchTerm, !
-    programToExec := searchTerm
-
-    ; Manual rebuild cache (command: !!)
-    if (programToExec == "!") {
-      CacheStartMenuItems()
-      gIsStartMenuItemsCached := True
-      Return
-    }
-
-    ; Cache start menu items (first run)
-    if (!gIsStartMenuItemsCached) {
-      CacheStartMenuItems()
-      gIsStartMenuItemsCached := True
-    }
-
-    ; Search cache
-    Loop %gCacheSize% {
-      targetShortcutPath := gArrShortcutPath%A_Index%
-      targetRealPath     := gArrRealPath%A_Index%
-      targetDesc         := gArrDesc%A_Index%
-      targetIcon         := gArrIcon%A_Index%
-
-      if (InStr(targetRealPath, programToExec) || InStr(targetShortcutPath, programToExec) || InStr(targetDesc, programToExec)) {
-        Try {
-          Run, "%targetRealPath%"
-        }
-        DisplayTrayTip("Launching application.", targetRealPath)
-        Return
-      }
-    }
-
-    DisplayTrayTip("Could not launch application", searchTerm, 2)
+    LaunchApplication(searchTerm)
     Return
   }
 
@@ -695,9 +756,7 @@ Activate() {
   StringLeft, firstChar, searchTerm, 1
   if ("?" == firstChar) {
     StringReplace, searchTerm, searchTerm, ?
-    Try {
-      Run, https://www.google.com/search?q=%searchTerm%
-    }
+    WebSearch(searchTerm)
     Return
   }
 
@@ -705,32 +764,7 @@ Activate() {
   StringLeft, firstChar, searchTerm, 1
   if ("#" == firstChar) {
     StringReplace, searchTerm, searchTerm, #
-
-    ; Get window titles and search
-    found := False
-    windowTitles := WinGetAll("Title")
-    Loop, Parse, windowTitles, `n,
-    {
-      ; Found (window title), get PID, ProcessName and hWnd
-      If (InStr(A_LoopField, SearchTerm, CaseSensitive=false)) {
-        found := True
-        SetTitleMatchMode, 3
-        windowTitle := A_LoopField                        ; Window title
-        WinGet, PID, PID, %windowTitle%                   ; PID
-        WinGet, processName, ProcessName, %windowTitle%   ; Process name
-        WinGet, hWnd, ID, %windowTitle%                   ; hWnd
-
-        ; Activate window
-        ActivateWindowHWnd(hWnd, PID, processName, windowTitle)
-        break
-      }
-    }
-
-    ; Window title not found
-    if (!found) {
-      ; Give up
-      DisplayTrayTip("Could not find window title.", searchTerm, 2)
-    }
+    WindowTitleSearch(searchTerm)
     Return
   }
 
