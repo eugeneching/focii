@@ -35,6 +35,7 @@ CacheStartMenuItems() {
     gArrDesc%gCacheSize% = %targetDesc%
     gArrIcon%gCacheSize% = %targetIcon%
     gCacheSize := gCacheSize + 1
+    ;AddToAutocompleteList("!"A_LoopFileName)
   }
 
   pathToSearch := ENV_PROGRAMDATA . "\Microsoft\Windows\Start Menu\Programs\*.*"
@@ -47,6 +48,7 @@ CacheStartMenuItems() {
     gArrDesc%gCacheSize% = %targetDesc%
     gArrIcon%gCacheSize% = %targetIcon%
     gCacheSize := gCacheSize + 1
+    ;AddToAutocompleteList("!"A_LoopFileName)
   }
 
   ; Remove the GUI

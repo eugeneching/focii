@@ -209,6 +209,23 @@ if (WIN64) {
 
 
 ; ----------------------------------------------------------------------------
+; AddToAutocompleteList(), ClearAutocompleteList()
+;
+; Handles the autocomplete list.
+; ----------------------------------------------------------------------------
+
+ClearAutocompleteList() {
+  global autocompleteList
+  autocompleteList := ""
+}
+
+AddToAutocompleteList(term) {
+  global autocompleteList
+  autocompleteList := autocompleteList . "|"term
+}
+
+
+; ----------------------------------------------------------------------------
 ; AddToHistory()
 ;
 ; Adds a search term to the history.
@@ -235,6 +252,25 @@ AddToHistory(item) {
 }
 
 
+Initialize() {
+  global isAutocompleteSetup
+
+  if (!isAutocompleteSetup) {
+    ClearAutocompleteList()
+    AddToAutocompleteList(":about")
+    AddToAutocompleteList(";about")
+    AddToAutocompleteList(":reload")
+    AddToAutocompleteList(";reload")
+    AddToAutocompleteList("desktop")
+    AddToAutocompleteList("desk")
+    AddToAutocompleteList("!<program name or description>")
+    AddToAutocompleteList("@<path to open>")
+    AddToAutocompleteList("#<window title>")
+    isAutocompleteSetup := true
+  }
+}
+
+
 ; ----------------------------------------------------------------------------
 ; Activate()
 ;
@@ -247,6 +283,8 @@ Activate() {
   global searchHistory1, searchHistory2, searchHistory3, searchHistory4, searchHistory5
   global currHWnd, currPID, currProcessName, currWindowTitle
 
+  Initialize()
+
   ; Display input box
   searchTerm := PowerBox()
 
@@ -256,7 +294,6 @@ Activate() {
  
   ; Grab first char
   StringLeft, firstChar, searchTerm, 1
-
 
   ; Off-the-record commands
   ;

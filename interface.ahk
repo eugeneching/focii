@@ -15,7 +15,7 @@
 ; ----------------------------------------------------------------------------
 
 PowerBox() {
-  global _cInput_Result, _cInput_Value, Box
+  global _cInput_Result, _cInput_Value, autocompleteList, Box
   global searchHistory1, searchHistory2, searchHistory3, searchHistory4, searchHistory5
 
   GuiID := 8    ; If changed, also change the subroutines below for #GuiEscape & #GuiClose
@@ -40,16 +40,19 @@ PowerBox() {
   Gui, %GuiID%:Margin, 0, 0
   Gui, %GuiID%:Font, Segoe UI c404040 S16
   Gui, %GuiID%:Color, c040404, FFF8DB
-  Gui, %GuiID%:Add, ComboBox, % "r5 vBox w400 h30 -VScroll v_cInput_Value", |%searchHistory1%||%searchHistory2%|%searchHistory3%|%searchHistory4%|%searchHistory5%
+  Gui, %GuiID%:Add, ComboBox, % "r5 vBox w400 h30 -VScroll g_cInput_Value v_cInput_Value", % autocompleteList
   Gui, %GuiID%:+AlwaysOnTop -Border -Caption -MaximizeBox -MinimizeBox +ToolWindow
   Gui, %GuiID%:Add, Button, x232 y70 w0 h0 hidden gCInputButton, % "Cancel"
   Gui, %GuiID%:Add, Button, x122 y70 w0 h0 hidden gCInputButton Default, % "OK"
   Gui, %GuiID%:Show, xCenter yCenter autosize x%xpos%
 
-  ; Wait for input
-  Loop
-    If( _cInput_Result )
+  ; Wait for input, do autocomplete as well
+  currentText := ""
+  Loop {
+    If( _cInput_Result ) {
       break
+    }
+  }
 
   ; Get the result
   Gui, %GuiID%:Submit, Hide
@@ -65,17 +68,57 @@ PowerBox() {
 
   ; Event: On destroy
   Gui %GuiID%:Destroy
-    Return Result
+  Return Result
 }
+
+_cInput_Value:
+  gui, submit, nohide
+  ; Check whether anything changed since we're in a busy loop,
+  ; and we don't want to keep firing the autocomplete code
+  ;
+  currentText := ""
+  if (currentText != _cInput_Value) {
+    ; Don't autocomplete when we see a backspace, or when there's nothing
+    search := "|"_cInput_Value
+    pos := InStr(autocompleteList, "|"_cInput_Value)
+    pos_end := InStr(autocompleteList, "|", 1, pos+1)
+
+    if (pos and pos_end == 0)
+      pos_end := StrLen(autocompleteList) + 1 
+
+    If (!GetKeyState("BackSpace", "P") and _cInput_Value and pos) {
+      ; Get hold of the actual autocomplete match string
+      found := SubStr(autocompleteList, pos + 1, pos_end - pos - 1)
+
+      if (found) {
+        BlockInput On
+        GuiControl, Text, _cInput_Value, %found%
+        numAutocompleteChars := StrLen(found) - StrLen(_cInput_Value)
+
+        ; Sends in the remainder of the string that we autocomplete to,
+        ; and then highlight the characters that we autocompleted, so 
+        ; the user can override them.
+        SendInput % "{End}+{Left " numAutocompleteChars "}"
+        BlockInput Off
+
+        ; Sleep is needed else currentText won't update properly
+        Sleep, 100
+        currentText := _cInput_Value
+      }
+    } 
+  }
+  Return
+
 
 8GuiEscape:
 8GuiClose:
   _cInput_Result := "Close"
-Return
+  Return
 
 CInputButton:
   StringReplace _cInput_Result, A_GuiControl, &,, All
-Return
+  Return
+
 
 
 ; ----------------------------------------------------------------------------
