@@ -15,8 +15,8 @@
 ; ----------------------------------------------------------------------------
 
 PowerBox() {
-  global _cInput_Result, _cInput_Value, autocompleteList, Box
-  global searchHistory1, searchHistory2, searchHistory3, searchHistory4, searchHistory5
+  global _cInput_Result, _cInput_Value, autocomplete_list, Box
+  ; global searchHistory1, searchHistory2, searchHistory3, searchHistory4, searchHistory5
 
   GuiID := 8    ; If changed, also change the subroutines below for #GuiEscape & #GuiClose
 
@@ -37,10 +37,13 @@ PowerBox() {
   xpos := virtualScreenStartX + (mouseMonitor * monitorWidth) + (monitorWidth // 2) - (boxWidth // 2)
 
   ; Draw the box
+  ; comboBoxList = %searchHistory1%|%searchHistory2%|%searchHistory3%|%searchHistory4%|%searchHistory5%|%autocomplete_list%
+  comboBoxList = %autocomplete_list%
+
   Gui, %GuiID%:Margin, 0, 0
   Gui, %GuiID%:Font, Segoe UI c404040 S16
   Gui, %GuiID%:Color, c040404, FFF8DB
-  Gui, %GuiID%:Add, ComboBox, % "r5 vBox w400 h30 -VScroll g_cInput_Value v_cInput_Value", % autocompleteList
+  Gui, %GuiID%:Add, ComboBox, % "r5 vBox w400 h30 -VScroll g_cInput_Value v_cInput_Value", % comboBoxList
   Gui, %GuiID%:+AlwaysOnTop -Border -Caption -MaximizeBox -MinimizeBox +ToolWindow
   Gui, %GuiID%:Add, Button, x232 y70 w0 h0 hidden gCInputButton, % "Cancel"
   Gui, %GuiID%:Add, Button, x122 y70 w0 h0 hidden gCInputButton Default, % "OK"
@@ -80,15 +83,15 @@ _cInput_Value:
   if (currentText != _cInput_Value) {
     ; Don't autocomplete when we see a backspace, or when there's nothing
     search := "|"_cInput_Value
-    pos := InStr(autocompleteList, "|"_cInput_Value)
-    pos_end := InStr(autocompleteList, "|", 1, pos+1)
+    pos := InStr(autocomplete_list, "|"_cInput_Value)
+    pos_end := InStr(autocomplete_list, "|", 1, pos+1)
 
     if (pos and pos_end == 0)
-      pos_end := StrLen(autocompleteList) + 1 
+      pos_end := StrLen(autocomplete_list) + 1 
 
     If (!GetKeyState("BackSpace", "P") and _cInput_Value and pos) {
       ; Get hold of the actual autocomplete match string
-      found := SubStr(autocompleteList, pos + 1, pos_end - pos - 1)
+      found := SubStr(autocomplete_list, pos + 1, pos_end - pos - 1)
 
       if (found) {
         BlockInput On

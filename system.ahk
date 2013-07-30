@@ -6,8 +6,8 @@
 ; shows a GUI.
 ; ----------------------------------------------------------------------------
 
-gIsStartMenuItemsCached := False
-gCacheSize := 0
+g_is_start_menu_items_cached := False
+g_cache_size := 0
 
 CacheStartMenuItems() {
   ; Assume global
@@ -23,31 +23,31 @@ CacheStartMenuItems() {
   DisplayTrayTip("Building index for applications (once only)...", "Gathering shortcuts from start menu")
 
   ; Build the cache
-  gCacheSize := 1
+  g_cache_size := 1
 
-  pathToSearch := ENV_APPDATA . "\Microsoft\Windows\Start Menu\Programs\*.*"
-  Loop, %pathToSearch%, 0, 1
+  path_to_search := ENV_APPDATA . "\Microsoft\Windows\Start Menu\Programs\*.*"
+  Loop, %path_to_search%, 0, 1
   {
-    FileGetShortcut, %A_LoopFileLongPath%, targetRealPath,,, targetDesc, targetIcon
-    gArrFileName%gCacheSize% = %A_LoopFileName%
-    gArrShortcutPath%gCacheSize% = %A_LoopFileLongPath%
-    gArrRealPath%gCacheSize% = %targetRealPath%
-    gArrDesc%gCacheSize% = %targetDesc%
-    gArrIcon%gCacheSize% = %targetIcon%
-    gCacheSize := gCacheSize + 1
+    FileGetShortcut, %A_LoopFileLongPath%, target_real_path,,, target_desc, target_icon
+    gArrFileName%g_cache_size% = %A_LoopFileName%
+    gArrShortcutPath%g_cache_size% = %A_LoopFileLongPath%
+    gArrRealPath%g_cache_size% = %target_real_path%
+    gArrDesc%g_cache_size% = %target_desc%
+    gArrIcon%g_cache_size% = %target_icon%
+    g_cache_size := g_cache_size + 1
     ;AddToAutocompleteList("!"A_LoopFileName)
   }
 
-  pathToSearch := ENV_PROGRAMDATA . "\Microsoft\Windows\Start Menu\Programs\*.*"
-  Loop, %pathToSearch%, 0, 1
+  path_to_search := ENV_PROGRAMDATA . "\Microsoft\Windows\Start Menu\Programs\*.*"
+  Loop, %path_to_search%, 0, 1
   {
-    FileGetShortcut, %A_LoopFileLongPath%, targetRealPath,,, targetDesc, targetIcon
-    gArrFileName%gCacheSize% = %A_LoopFileName%
-    gArrShortcutPath%gCacheSize% = %A_LoopFileLongPath%
-    gArrRealPath%gCacheSize% = %targetRealPath%
-    gArrDesc%gCacheSize% = %targetDesc%
-    gArrIcon%gCacheSize% = %targetIcon%
-    gCacheSize := gCacheSize + 1
+    FileGetShortcut, %A_LoopFileLongPath%, target_real_path,,, target_desc, target_icon
+    gArrFileName%g_cache_size% = %A_LoopFileName%
+    gArrShortcutPath%g_cache_size% = %A_LoopFileLongPath%
+    gArrRealPath%g_cache_size% = %target_real_path%
+    gArrDesc%g_cache_size% = %target_desc%
+    gArrIcon%g_cache_size% = %target_icon%
+    g_cache_size := g_cache_size + 1
     ;AddToAutocompleteList("!"A_LoopFileName)
   }
 
@@ -63,8 +63,8 @@ CacheStartMenuItems() {
 ; search the path, shortcut path and program description.
 ; ----------------------------------------------------------------------------
 
-LaunchApplication(programToExec) {
-  global gIsStartMenuItemsCached, gCacheSize
+LaunchApplication(program_to_exec) {
+  global g_is_start_menu_items_cached, g_cache_size
 
   ; Grab necessary environment variables
   EnvGet, ENV_LOCALAPPDATA, LOCALAPPDATA
@@ -73,36 +73,36 @@ LaunchApplication(programToExec) {
   EnvGet, ENV_PATH, PATH
 
   ; Manual rebuild cache (command: !!)
-  if (programToExec == "!") {
+  if (program_to_exec == "!") {
     CacheStartMenuItems()
-    gIsStartMenuItemsCached := True
+    g_is_start_menu_items_cached := True
     Return
   }
 
   ; Cache start menu items (first run)
-  if (!gIsStartMenuItemsCached) {
+  if (!g_is_start_menu_items_cached) {
     CacheStartMenuItems()
-    gIsStartMenuItemsCached := True
+    g_is_start_menu_items_cached := True
   }
 
   ; Build regex to search for program name
-  regexExpr := "i)^"programToExec
-  regexExpr .= "\."
+  regex_expr := "i)^"program_to_exec
+  regex_expr .= "\."
 
   ; Search cache (by file name first)
-  Loop %gCacheSize% {
-    targetFileName     := gArrFileName%A_Index%
-    targetShortcutPath := gArrShortcutPath%A_Index%
-    targetRealPath     := gArrRealPath%A_Index%
-    targetDesc         := gArrDesc%A_Index%
-    targetIcon         := gArrIcon%A_Index%
+  Loop %g_cache_size% {
+    target_file_name     := gArrFileName%A_Index%
+    target_shortcut_path := gArrShortcutPath%A_Index%
+    target_real_path     := gArrRealPath%A_Index%
+    target_desc          := gArrDesc%A_Index%
+    target_icon          := gArrIcon%A_Index%
 
-    found := RegExMatch(targetFileName, regexExpr)
+    found := RegExMatch(target_file_name, regex_expr)
     if (found != "" && found != 0) {
       Try {
-        Run, "%targetRealPath%"
+        Run, "%target_real_path%"
       }
-      DisplayTrayTip("Launching application.", targetRealPath)
+      DisplayTrayTip("Launching application.", target_real_path)
       Return
     }
   }
@@ -113,23 +113,23 @@ LaunchApplication(programToExec) {
   ;
   ; We disable this for now.
   ;
-  Loop %gCacheSize% {
-    targetFileName     := gArrFileName%A_Index%
-    targetShortcutPath := gArrShortcutPath%A_Index%
-    targetRealPath     := gArrRealPath%A_Index%
-    targetDesc         := gArrDesc%A_Index%
-    targetIcon         := gArrIcon%A_Index%
+  Loop %g_cache_size% {
+    target_file_name     := gArrFileName%A_Index%
+    target_shortcut_path := gArrShortcutPath%A_Index%
+    target_real_path     := gArrRealPath%A_Index%
+    target_desc          := gArrDesc%A_Index%
+    target_icon          := gArrIcon%A_Index%
 
-    if (InStr(targetRealPath, programToExec) || InStr(targetShortcutPath, programToExec) || InStr(targetDesc, programToExec)) {
+    if (InStr(target_real_path, program_to_exec) || InStr(target_shortcut_path, program_to_exec) || InStr(target_desc, program_to_exec)) {
       Try {
-        Run, "%targetRealPath%"
+        Run, "%target_real_path%"
       }
-      DisplayTrayTip("Launching application (fuzzy search).", targetRealPath)
+      DisplayTrayTip("Launching application (fuzzy search).", target_real_path)
       Return
     }
   }
 
-  DisplayTrayTip("Could not launch application", searchTerm, 2)
+  DisplayTrayTip("Could not launch application", program_to_exec, 2)
   Return
 }
 
@@ -140,20 +140,20 @@ LaunchApplication(programToExec) {
 ; Opens explorer to the path specified.
 ; ----------------------------------------------------------------------------
 
-ExplorePath(searchTerm) {
-  if (FileExist(searchTerm)) {
+ExplorePath(search_term) {
+  if (FileExist(search_term)) {
     Try {
       ; Try dopus first
-      Run, dopus.exe "%searchTerm%"
+      Run, dopus.exe "%search_term%"
     } Catch e {
       ; Default back to explorer
-      Run, explorer.exe "%searchTerm%"
+      Run, explorer.exe "%search_term%"
     }
-    DisplayTrayTip("Launching explorer.", searchTerm)
+    DisplayTrayTip("Launching explorer.", search_term)
     Return
 
   } else {
-    DisplayTrayTip("Could not launch explorer.", "No such path """ . searchTerm . """.", 2)
+    DisplayTrayTip("Could not launch explorer.", "No such path """ . search_term . """.", 2)
   }
 }
 
@@ -165,9 +165,9 @@ ExplorePath(searchTerm) {
 ; This is Google.
 ; ----------------------------------------------------------------------------
 
-WebSearch(searchTerm) {
+WebSearch(search_term) {
   Try {
-    Run, https://www.google.com/search?q=%searchTerm%
+    Run, https://www.google.com/search?q=%search_term%
   }
 }
 

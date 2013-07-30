@@ -4,9 +4,9 @@
 ; Special handling for Chrome's tabs.
 ; ----------------------------------------------------------------------------
 
-HandleChrome(hWnd, PID, processName, windowTitle) {
+HandleChrome(hWnd) {
   ; Activate Chrome 
-  ActivateWindowByHWnd(hWnd, PID, processName, windowTitle)
+  ActivateWindowByHWnd(hWnd)
 
   ; Wait for Chrome to be the active window
   SetTitleMatchMode 2
@@ -31,3 +31,5 @@ HandleChrome(hWnd, PID, processName, windowTitle) {
     }
   }
 }
+
+
