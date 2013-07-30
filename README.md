@@ -1,137 +1,98 @@
+The goal of Focii is to:
 
-        ,---,.
-      ,'  .' |                      ,--,     ,--,
-    ,---.'   |   ,---.            ,--.'|   ,--.'|
-    |   |   .'  '   ,'\           |  |,    |  |,
-    :   :  :   /   /   |   ,---.  `--'_    `--'_
-    :   |  |-,.   ; ,. :  /     \ ,' ,'|   ,' ,'|
-    |   :  ;/|'   | |: : /    / ' '  | |   '  | |
-    |   |   .''   | .; :.    ' /  |  | :   |  | :
-    '   :  '  |   :    |'   ; :__ '  : |__ '  : |__
-    |   |  |   \   \  / '   | '.'||  | '.'||  | '.'|
-    |   :  \    `----'  |   :    :;  :    ;;  :    ;
-    |   | ,'             \   \  / |  ,   / |  ,   /
-    `----'                `----'   ---`-'   ---`-'
+> Make window switching a keyboard only affair, and let me get to any
+> window (unless it's hidden), using a small number of keystrokes that
+> I can easily remember.
 
+### Find a window
 
-Focii is a window focusing (switching) tool designed to replace Alt-Tab
-with a far more accurate mechanism. It allows you to pin-point, through
-text, a given window that you want to focus on.
+The main keystroke is `ctrl-;`. This is a global key-binding that opens
+the main focii search window. In this window, you can enter a search term.
+It will then find a window that best matches that search term.
 
-Hence, Focii has different modes of operations:
+The search window looks like a small bar in the middle of the screen. If
+you have multiple screens, it's going to appear on the screen where your
+mouse cursor is. This may change.
 
-  * Command mode
-  * Switch mode
-      - Switch-by-process mode
-      - Switch-by-title mode
-      - Hybrid mode
+And here's how it searches:
 
-Focii has a very simple UI, which is a text box. It is triggered by the
-default key combination of:
+  - Among program names (e.g. chrome.exe, firefox.exe, winword.exe)
+  - Among window titles (i.e. the text that's *usually* in the title bar)
 
-     Ctrl-;
-
-upon which a box will be displayed in the middle of the active screen.
-Focii then expects a command, which Focii will interpret in one of two
-major modes (command mode, switch mode). These are described next.
+And really that's it. The key thing to remember is that it is going to
+open the *first* correct match it finds. Note that is searches against
+*program names* (the name of the executable, for instance), and not the
+common name of the program (e.g. Microsoft Word).
 
 
-## Command Mode
+### Can I be more specific?
 
-Command mode is simple, and all commands come with a prefix as the first
-char (e.g. '!', '?'). Prefixes setse Focii into command mode, and the
-prefix itself determines the command, and everything after the prefix is
-interpreted as arguments to the command.
+Actually you can. You can search amongst programs *and* their window title,
+at the same time. Meaning, for instance, you have 20 Microsoft Word windows
+open, and you want to find the one that is display the "readme.doc" file.
 
-The following lists Focii's commands:
+Then you can do this search query:
 
-    * !program    : Launches an application
-    * @directory  : Opens explorer to that directory
-    * #window     : Matches window titles and switches to that window
-    * ?searchterm : Searches the internet for search term
-    * :about      : Displays "about" information
-    * :reload     : Reloads Focii (only for non-compiled versions)
-    * ;           : Switch to previous window (alt-tab)
+    word!readme
 
-Note that ':' commands also permit the use of ';' as an alternative.
+And it's going to open the first document that is open is Microsoft Word.
+The assumption is that the program name "Word" matches "Microsoft Word" and
+not something like "Wordpad", for instance. If there is ambiguity, you just
+need to be more specific:
+
+    winword!readme 
 
 
-## Switch Mode
+### Oops, it got it wrong, now what?
 
-Everything else puts Focii into switch mode, where the objective is to
-specify a precise window to switch to, and switch to it.
+Focii gives you two methods to recourse if it gives you the wrong window.
+The first is to switch among windows that matches the search term, but
+was not the first match. The key-binding is:
 
-A switch command takes two forms (using the example of notepad):
+    win-;
 
-  1. notepad
-  2. notepad!mytextfile
+The second method of recourse is for you to switch among windows of the
+same application, no matter what those windows are. They key-binding is:
 
-In the case above, "notepad" is the primary search term, and "mytextfile"
-is the secondary search term.
+    alt-;
 
-As detailed above, switch mode has three sub-modes. The three modes are
-linked, and falls through to each other in order to keep the interface
-as intuitive as possible.
+The exception to the `alt-;` is if the window is not a Windows (the operating
+system) recognized window. A good example are tabs (i.e. browser tabs, for
+instance). These tabs are implemented not in a way that Windows can trivially
+enumerate, and hence Focii doesn't switch among them. However, most
+applications that implements tabs allows you to switch easily among them
+anyway. A seemingly consistent standard is `ctrl-tab`.
 
-### Switch-by-process mode
-When a search term is directly entered into
-Focii, this is the default mode. In this mode, all the running processes
-enumerated, and the best match (against the shortest name) is used. If
-a match is found and there is no secondary search term, Focii switches
-to the topmost window of that process. If there is a secondary search
-term, Focii enters Hybrid mode.
-
-### Switch-by-title mode
-If a process cannot be found using the primary
-search term at all, Focii abandons switch-by-process mode and enters
-switch-by-title mode. In this mode, the primary search term is taken
-to match against all the window titles of all existing windows. If
-a match is found and there is no secondary search term, Focii switches
-to that window that it found. If there is a secondary search term,
-Focii enteres Hybrid mode. If a match is not found, Focii gives up.
-
-### Hybrid mode
-Hybrid mode deals with secondary search terms. It also
-assumes that a suitable process/window has been found, but you have
-specified something more specific (in the secondary search term).
-In this scenario, Focii will use the secondary search term to match
-against the window titles of all the windows that belongs to that
-process, matching it as best as it can. Hence, in the example above,
-"notepad!mytextfile" will try to switch to the notepad window (if
-there are multiple) that has "mytextfile" in its window title. If
-it cannot match, it will open whichever notepad window it can find.
+Hence, I believe and hope that with these key combinations at your disposal, it
+becomes fairly quick and easy to get to the window you want, keyboard-style.
 
 
-## Special Applications
+### Auxillary utilities
 
-Focii also has support for specific programs that have the idea of
-tabs. Examples of this would be browsers, and IM clients. Since each
-program is different, there is no generic way for Focii to be able
-to switch to, for instance, a given tab in a browser. Hence,
-specific support is implemented for certain programs.
+Focii also gives you some other goodies, if you will. 
 
 
-## Visual Indicators
+#### Flashing current window
 
-Focii will flash the window that it activates, as a visual indicator
-of which window it selects.
+First of all, when you switch between windows, it flashes the active window. 
+This gives you a visual cue where you are. In addition, if you lose track
+(since you're not using the mouse), hitting:
 
+    ctrl-alt-;
 
-## Primary/Secondary Search Term Separators
-
-Focii accepts both the '!' character (as above) and the <space>
-character as search term separators. Hence, "notepad mytextfile" works
-in the same way as the example above. Note that separators are _not_
-respected or cared for in command mode.
+will flash the current active window.
 
 
----  
+#### Starting a program
 
-Eugene Ching  
-(codejury)  
+In the spirit of a launcher, typing
 
-eugene@enegue.com  
-www.codejury.com  
-@eugeneching  
+    !<program-name>
+
+will have Focii search the start menu for a matching name, and *start* that
+process. Note that this is not window switching. I'd also like to say that this
+is not Focii's main aim, and hence may not be the most intelligent or advanced
+launching mechanism around ;)
+
 
 
