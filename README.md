@@ -4,6 +4,10 @@ The goal of Focii is to:
 > window (unless it's hidden), using a small number of keystrokes that
 > I can easily remember.
 
+You may find my blog post on Focii here:
+
+[Ditching the mouse for pure keyboard navigation](http://www.codejury.com/ditching-the-mouse-for-pure-keyboard-navigation/)
+
 ### Find a window
 
 The main keystroke is `ctrl-;`. This is a global key-binding that opens
