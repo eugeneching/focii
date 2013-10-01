@@ -191,6 +191,12 @@ ActivateTrayTipOff:
 ; ----------------------------------------------------------------------------
 
 FlashWindow(hWnd) {
+  global cfg_flash_window_on_activate
+
+  if (cfg_flash_window_on_activate == 0) {
+    return
+  }
+
   SysGet, VirtualWidth, 78
   SysGet, VirtualHeight, 79
 

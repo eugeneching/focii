@@ -84,6 +84,9 @@ if (WIN64) {
   ENV_WINDIR := "C:\windows"
 }
 
+; Globals
+cfg_flash_window_on_activate := 1
+
 
 
 ; ----------------------------------------------------------------------------
@@ -97,9 +100,10 @@ Focii() {
   ; Globals
   ; global searchHistory1, searchHistory2, searchHistory3, searchHistory4, searchHistory5
   global g_group_index
+  global cfg_flash_window_on_activate
 
   Initialize()
-
+      
   ; Display input box
   search_term := PowerBox()
 
@@ -133,6 +137,16 @@ Focii() {
   if ("desk" == search_term || "desktop" == search_term) {
     WinActivate, Program Manager
     DisplayTrayTip("Activating desktop.")
+    return
+  }
+
+  ; Toggle flash
+  if (":flash" == search_term || ";flash" == search_term) {
+    if (cfg_flash_window_on_activate == 0) {
+      cfg_flash_window_on_activate = 1
+    } else {
+      cfg_flash_window_on_activate = 0
+    }
     return
   }
 
