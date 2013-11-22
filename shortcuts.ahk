@@ -11,14 +11,14 @@
   Focii()
   return
 
-; Win-;
-#;::
+; Alt-;
+!;::
   ; Switch among the windows found by a search term
   SwitchAmongSearchedWindows()
   return
 
-; Alt-;
-!;::
+; Win-;
+#;::
   ; Switch among windows of the same application
   SwitchAmongSimilarWindows()
   return
